@@ -3,6 +3,7 @@ package com.placementhub.backend.controller;
 import com.placementhub.backend.dto.AuthResponse;
 import com.placementhub.backend.dto.LoginRequest;
 import com.placementhub.backend.dto.RegisterRequest;
+import com.placementhub.backend.dto.RegisterResponse;
 import com.placementhub.backend.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,10 +21,11 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
+    public ResponseEntity<RegisterResponse> register(
             @Valid @RequestBody RegisterRequest request) {
 
-        AuthResponse response = authService.register(request);
+        RegisterResponse response =
+                authService.register(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

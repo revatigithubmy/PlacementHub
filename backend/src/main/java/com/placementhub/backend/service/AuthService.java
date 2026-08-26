@@ -3,8 +3,10 @@ package com.placementhub.backend.service;
 import com.placementhub.backend.dto.AuthResponse;
 import com.placementhub.backend.dto.LoginRequest;
 import com.placementhub.backend.dto.RegisterRequest;
+import com.placementhub.backend.dto.RegisterResponse;
 import com.placementhub.backend.entity.User;
 import com.placementhub.backend.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,25 +14,62 @@ public class AuthService {
 
     private final UserRepository userRepository;
 
-    public AuthService(UserRepository userRepository) {
+    private final PasswordEncoder passwordEncoder;
+
+    private final JwtService jwtService;
+
+    public AuthService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
+    ) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
-    public AuthResponse register(RegisterRequest request) {
+    // =========================
+    // REGISTER
+    // =========================
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+    public RegisterResponse register(
+            RegisterRequest request
+    ) {
+
+        // Check if email already exists
+        if (userRepository.existsByEmail(
+                request.getEmail()
+        )) {
+
+            throw new RuntimeException(
+                    "Email already registered"
+            );
         }
 
+        // Create new user
         User user = new User();
 
-        user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
-        user.setRole(request.getRole());
+        user.setEmail(
+                request.getEmail()
+        );
 
-        User savedUser = userRepository.save(user);
+        // Encrypt password using BCrypt
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getPassword()
+                )
+        );
 
-        return new AuthResponse(
+        user.setRole(
+                request.getRole()
+        );
+
+        // Save user
+        User savedUser =
+                userRepository.save(user);
+
+        // Return registration response
+        return new RegisterResponse(
                 savedUser.getId(),
                 savedUser.getEmail(),
                 savedUser.getRole(),
@@ -38,21 +77,50 @@ public class AuthService {
         );
     }
 
-    public AuthResponse login(LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException("Invalid email or password"));
+    // =========================
+    // LOGIN
+    // =========================
 
-        if (!user.getPassword().equals(request.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+    public AuthResponse login(
+            LoginRequest request
+    ) {
+
+        // Find user by email
+        User user =
+                userRepository.findByEmail(
+                                request.getEmail()
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Invalid email or password"
+                                )
+                        );
+
+        // Check password
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword()
+        )) {
+
+            throw new RuntimeException(
+                    "Invalid email or password"
+            );
         }
 
+        // Generate JWT
+        String token =
+                jwtService.generateToken(
+                        user.getEmail(),
+                        user.getRole().name()
+                );
+
+        // Return login response
         return new AuthResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getRole(),
-                "Login successful"
+                token
         );
     }
 }
