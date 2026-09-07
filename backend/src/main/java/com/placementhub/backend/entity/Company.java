@@ -18,8 +18,12 @@ public class Company {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    @OneToOne
+    @JoinColumn(name = "recruiter_id", nullable = false, unique = true)
+    private Recruiter recruiter;
+
+    @Column(nullable = false)
+    private String companyName;
 
     @Column(length = 1000)
     private String description;
@@ -28,13 +32,5 @@ public class Company {
 
     private String location;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ApprovalStatus approvalStatus;
-
-    public enum ApprovalStatus {
-        PENDING,
-        APPROVED,
-        REJECTED
-    }
+    private String industry;
 }
