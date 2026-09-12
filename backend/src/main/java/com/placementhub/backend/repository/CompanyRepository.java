@@ -10,5 +10,7 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     Optional<Company> findByRecruiterId(Long recruiterId);
 
+    Optional<Company> findByRecruiterUserId(Long userId);
+
     boolean existsByRecruiterId(Long recruiterId);
 }

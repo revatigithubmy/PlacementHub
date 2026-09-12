@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "jobs")
@@ -31,32 +31,20 @@ public class Job {
     @Column(length = 2000, nullable = false)
     private String description;
 
-    @Column(nullable = false)
-    private Double salary;
-
-    @Column(nullable = false)
     private String location;
-
-    @Column(name = "min_cgpa", nullable = false)
-    private Double minCgpa;
-
-    @Column(name = "graduation_year", nullable = false)
-    private Integer graduationYear;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private JobStatus status;
+    private JobType jobType;
 
-    @ManyToMany
-    @JoinTable(
-            name = "job_skills",
-            joinColumns = @JoinColumn(name = "job_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id")
-    )
-    private Set<Skill> requiredSkills = new HashSet<>();
+    private Double salary;
 
-    public enum JobStatus {
-        OPEN,
-        CLOSED
-    }
+    private Integer experienceRequired;
+
+    @Column(length = 1000)
+    private String skills;
+
+    private LocalDate applicationDeadline;
+
+    private LocalDateTime createdAt;
 }
