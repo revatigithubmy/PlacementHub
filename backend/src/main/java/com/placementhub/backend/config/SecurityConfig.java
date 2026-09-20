@@ -97,6 +97,9 @@ public class SecurityConfig {
                                 "/api/admin/**"
                         ).hasRole("ADMIN")
 
+                        .requestMatchers("/api/jobs/**")
+                        .authenticated()
+
                         // Everything else requires authentication
                         .anyRequest()
                         .authenticated()

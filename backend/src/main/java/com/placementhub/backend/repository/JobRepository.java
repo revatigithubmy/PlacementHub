@@ -6,12 +6,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
-public interface JobRepository extends JpaRepository<Job, Long> {
 
+public interface JobRepository extends JpaRepository<Job, Long> {
 
     List<Job> findByCompany(Company company);
 
     List<Job> findByCompanyId(Long companyId);
 
     Optional<Job> findByIdAndCompanyId(Long jobId, Long companyId);
+
+    List<Job> findByTitleContainingIgnoreCase(String title);
+
+    List<Job> findByLocationContainingIgnoreCase(String location);
+
+    List<Job> findByTitleContainingIgnoreCaseOrSkillsContainingIgnoreCase(
+            String title,
+            String skills
+    );
 }
