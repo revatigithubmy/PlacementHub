@@ -1,10 +1,6 @@
 package com.placementhub.backend.controller;
 
-import com.placementhub.backend.dto.AdminCompanyResponse;
-import com.placementhub.backend.dto.AdminJobResponse;
-import com.placementhub.backend.dto.AdminRecruiterResponse;
-import com.placementhub.backend.dto.AdminStudentResponse;
-import com.placementhub.backend.dto.AdminUserResponse;
+import com.placementhub.backend.dto.*;
 import com.placementhub.backend.service.AdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -92,6 +88,14 @@ public class AdminController {
 
         return ResponseEntity.ok(
                 "Job deleted successfully"
+        );
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<AdminDashboardResponse> getDashboardStats() {
+
+        return ResponseEntity.ok(
+                adminService.getDashboardStats()
         );
     }
 }

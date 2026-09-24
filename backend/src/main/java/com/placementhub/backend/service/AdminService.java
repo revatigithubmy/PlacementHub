@@ -1,10 +1,6 @@
 package com.placementhub.backend.service;
 
-import com.placementhub.backend.dto.AdminCompanyResponse;
-import com.placementhub.backend.dto.AdminJobResponse;
-import com.placementhub.backend.dto.AdminRecruiterResponse;
-import com.placementhub.backend.dto.AdminStudentResponse;
-import com.placementhub.backend.dto.AdminUserResponse;
+import com.placementhub.backend.dto.*;
 import com.placementhub.backend.entity.Application;
 import com.placementhub.backend.entity.Company;
 import com.placementhub.backend.entity.Job;
@@ -196,6 +192,36 @@ public class AdminService {
                 job.getSkills(),
                 job.getApplicationDeadline(),
                 job.getCreatedAt()
+        );
+    }
+
+    public AdminDashboardResponse getDashboardStats() {
+
+        long totalUsers = userRepository.count();
+
+        long totalStudents = studentRepository.count();
+
+        long totalRecruiters = recruiterRepository.count();
+
+        long totalCompanies = companyRepository.count();
+
+        long totalJobs = jobRepository.count();
+
+        long totalApplications = applicationRepository.count();
+
+        long selectedStudents =
+                applicationRepository.countByStatus(
+                        Application.ApplicationStatus.SELECTED
+                );
+
+        return new AdminDashboardResponse(
+                totalUsers,
+                totalStudents,
+                totalRecruiters,
+                totalCompanies,
+                totalJobs,
+                totalApplications,
+                selectedStudents
         );
     }
 }
