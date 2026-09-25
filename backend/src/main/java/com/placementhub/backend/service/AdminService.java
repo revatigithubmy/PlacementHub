@@ -1,6 +1,12 @@
 package com.placementhub.backend.service;
 
-import com.placementhub.backend.dto.*;
+import com.placementhub.backend.dto.AdminApplicationResponse;
+import com.placementhub.backend.dto.AdminCompanyResponse;
+import com.placementhub.backend.dto.AdminDashboardResponse;
+import com.placementhub.backend.dto.AdminJobResponse;
+import com.placementhub.backend.dto.AdminRecruiterResponse;
+import com.placementhub.backend.dto.AdminStudentResponse;
+import com.placementhub.backend.dto.AdminUserResponse;
 import com.placementhub.backend.entity.Application;
 import com.placementhub.backend.entity.Company;
 import com.placementhub.backend.entity.Job;
@@ -55,21 +61,22 @@ public class AdminService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
-                );
+                        new RuntimeException("User not found"));
 
         return convertToUserResponse(user);
     }
+
 
     public void deleteUser(Long userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
-                );
+                        new RuntimeException("User not found"));
 
         userRepository.delete(user);
     }
+
+
     public List<AdminStudentResponse> getAllStudents() {
 
         return studentRepository.findAll()
@@ -77,6 +84,7 @@ public class AdminService {
                 .map(this::convertToStudentResponse)
                 .toList();
     }
+
 
     public List<AdminRecruiterResponse> getAllRecruiters() {
 
@@ -86,6 +94,7 @@ public class AdminService {
                 .toList();
     }
 
+
     public List<AdminCompanyResponse> getAllCompanies() {
 
         return companyRepository.findAll()
@@ -93,6 +102,7 @@ public class AdminService {
                 .map(this::convertToCompanyResponse)
                 .toList();
     }
+
 
     public List<AdminJobResponse> getAllJobs() {
 
@@ -107,8 +117,7 @@ public class AdminService {
 
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() ->
-                        new RuntimeException("Job not found")
-                );
+                        new RuntimeException("Job not found"));
 
         List<Application> applications =
                 applicationRepository.findByJobId(jobId);
@@ -118,82 +127,6 @@ public class AdminService {
         jobRepository.delete(job);
     }
 
-    private AdminUserResponse convertToUserResponse(User user) {
-
-        return new AdminUserResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getRole()
-        );
-    }
-
-    private AdminStudentResponse convertToStudentResponse(
-            Student student
-    ) {
-
-        return new AdminStudentResponse(
-                student.getId(),
-                student.getUser().getId(),
-                student.getUser().getEmail(),
-                student.getFullName(),
-                student.getPhone(),
-                student.getCollege(),
-                student.getBranch(),
-                student.getCgpa(),
-                student.getGraduationYear(),
-                student.getResumeUrl()
-        );
-    }
-
-    private AdminRecruiterResponse convertToRecruiterResponse(
-            Recruiter recruiter
-    ) {
-
-        return new AdminRecruiterResponse(
-                recruiter.getId(),
-                recruiter.getUser().getId(),
-                recruiter.getUser().getEmail(),
-                recruiter.getFullName(),
-                recruiter.getPhone(),
-                recruiter.getDesignation()
-        );
-    }
-
-    private AdminCompanyResponse convertToCompanyResponse(
-            Company company
-    ) {
-
-        return new AdminCompanyResponse(
-                company.getId(),
-                company.getRecruiter().getId(),
-                company.getRecruiter().getFullName(),
-                company.getCompanyName(),
-                company.getDescription(),
-                company.getWebsite(),
-                company.getLocation(),
-                company.getIndustry()
-        );
-    }
-
-    private AdminJobResponse convertToJobResponse(
-            Job job
-    ) {
-
-        return new AdminJobResponse(
-                job.getId(),
-                job.getCompany().getId(),
-                job.getCompany().getCompanyName(),
-                job.getTitle(),
-                job.getDescription(),
-                job.getLocation(),
-                job.getJobType(),
-                job.getSalary(),
-                job.getExperienceRequired(),
-                job.getSkills(),
-                job.getApplicationDeadline(),
-                job.getCreatedAt()
-        );
-    }
 
     public AdminDashboardResponse getDashboardStats() {
 
@@ -222,6 +155,214 @@ public class AdminService {
                 totalJobs,
                 totalApplications,
                 selectedStudents
+        );
+    }
+
+
+    public List<AdminApplicationResponse> getAllApplications() {
+
+        return applicationRepository.findAll()
+                .stream()
+                .map(this::convertToAdminApplicationResponse)
+                .toList();
+    }
+
+
+    public AdminApplicationResponse getApplicationById(
+            Long applicationId
+    ) {
+
+        Application application =
+                applicationRepository.findById(applicationId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Application not found"
+                                ));
+
+        return convertToAdminApplicationResponse(application);
+    }
+
+    public List<AdminApplicationResponse> getApplicationsByStatus(
+            Application.ApplicationStatus status
+    ) {
+
+        List<Application> applications =
+                applicationRepository.findAll()
+                        .stream()
+                        .filter(application ->
+                                application.getStatus() == status
+                        )
+                        .toList();
+
+        return applications.stream()
+                .map(this::convertToAdminApplicationResponse)
+                .toList();
+    }
+
+
+    public List<AdminApplicationResponse> getApplicationsForJob(
+            Long jobId
+    ) {
+
+
+        jobRepository.findById(jobId)
+                .orElseThrow(() ->
+                        new RuntimeException("Job not found"));
+
+        return applicationRepository.findByJobId(jobId)
+                .stream()
+                .map(this::convertToAdminApplicationResponse)
+                .toList();
+    }
+
+    public List<AdminJobResponse> getJobsForCompany(
+            Long companyId
+    ) {
+
+
+        companyRepository.findById(companyId)
+                .orElseThrow(() ->
+                        new RuntimeException("Company not found"));
+
+        return jobRepository.findByCompanyId(companyId)
+                .stream()
+                .map(this::convertToJobResponse)
+                .toList();
+    }
+
+
+
+    public List<AdminUserResponse> searchUsersByEmail(
+            String email
+    ) {
+
+        return userRepository
+                .findByEmailContainingIgnoreCase(email)
+                .stream()
+                .map(this::convertToUserResponse)
+                .toList();
+    }
+
+
+
+    public List<AdminUserResponse> getUsersByRole(
+            User.Role role
+    ) {
+
+        return userRepository
+                .findByRole(role)
+                .stream()
+                .map(this::convertToUserResponse)
+                .toList();
+    }
+
+
+    private AdminUserResponse convertToUserResponse(
+            User user
+    ) {
+
+        return new AdminUserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getRole()
+        );
+    }
+
+
+    private AdminStudentResponse convertToStudentResponse(
+            Student student
+    ) {
+
+        return new AdminStudentResponse(
+                student.getId(),
+                student.getUser().getId(),
+                student.getUser().getEmail(),
+                student.getFullName(),
+                student.getPhone(),
+                student.getCollege(),
+                student.getBranch(),
+                student.getCgpa(),
+                student.getGraduationYear(),
+                student.getResumeUrl()
+        );
+    }
+
+
+    private AdminRecruiterResponse convertToRecruiterResponse(
+            Recruiter recruiter
+    ) {
+
+        return new AdminRecruiterResponse(
+                recruiter.getId(),
+                recruiter.getUser().getId(),
+                recruiter.getUser().getEmail(),
+                recruiter.getFullName(),
+                recruiter.getPhone(),
+                recruiter.getDesignation()
+        );
+    }
+
+
+    private AdminCompanyResponse convertToCompanyResponse(
+            Company company
+    ) {
+
+        return new AdminCompanyResponse(
+                company.getId(),
+                company.getRecruiter().getId(),
+                company.getRecruiter().getFullName(),
+                company.getCompanyName(),
+                company.getDescription(),
+                company.getWebsite(),
+                company.getLocation(),
+                company.getIndustry()
+        );
+    }
+
+
+    private AdminJobResponse convertToJobResponse(
+            Job job
+    ) {
+
+        return new AdminJobResponse(
+                job.getId(),
+                job.getCompany().getId(),
+                job.getCompany().getCompanyName(),
+                job.getTitle(),
+                job.getDescription(),
+                job.getLocation(),
+                job.getJobType(),
+                job.getSalary(),
+                job.getExperienceRequired(),
+                job.getSkills(),
+                job.getApplicationDeadline(),
+                job.getCreatedAt()
+        );
+    }
+
+
+    private AdminApplicationResponse
+    convertToAdminApplicationResponse(
+            Application application
+    ) {
+
+        return new AdminApplicationResponse(
+
+                application.getId(),
+
+                application.getStudent().getId(),
+                application.getStudent().getFullName(),
+                application.getStudent().getUser().getEmail(),
+
+                application.getJob().getId(),
+                application.getJob().getTitle(),
+
+                application.getJob().getCompany().getId(),
+                application.getJob().getCompany().getCompanyName(),
+
+                application.getStatus(),
+
+                application.getAppliedAt()
         );
     }
 }

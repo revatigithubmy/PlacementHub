@@ -30,14 +30,15 @@ public class ApplicationService {
     private final UserRepository userRepository;
     private final RecruiterRepository recruiterRepository;
     private final CompanyRepository companyRepository;
-
+    private final NotificationService notificationService;
     public ApplicationService(
             ApplicationRepository applicationRepository,
             StudentRepository studentRepository,
             JobRepository jobRepository,
             UserRepository userRepository,
             RecruiterRepository recruiterRepository,
-            CompanyRepository companyRepository
+            CompanyRepository companyRepository,
+            NotificationService notificationService
     ) {
         this.applicationRepository = applicationRepository;
         this.studentRepository = studentRepository;
@@ -45,9 +46,8 @@ public class ApplicationService {
         this.userRepository = userRepository;
         this.recruiterRepository = recruiterRepository;
         this.companyRepository = companyRepository;
+        this.notificationService = notificationService;
     }
-
-
 
     public ApplicationResponse applyForJob(
             Long jobId,
@@ -90,11 +90,22 @@ public class ApplicationService {
 
         Application savedApplication =
                 applicationRepository.save(application);
+        Long recruiterUserId =
+                savedApplication
+                        .getJob()
+                        .getCompany()
+                        .getRecruiter()
+                        .getUser()
+                        .getId();
+
+        notificationService.createNotification(
+                recruiterUserId,
+                "New application received for job: "
+                        + savedApplication.getJob().getTitle()
+        );
 
         return convertToResponse(savedApplication);
     }
-
-
 
     public List<ApplicationResponse> getMyApplications(
             Authentication authentication
@@ -115,8 +126,6 @@ public class ApplicationService {
                 .map(this::convertToResponse)
                 .toList();
     }
-
-
 
     public ApplicationResponse getMyApplication(
             Long applicationId,
@@ -146,8 +155,6 @@ public class ApplicationService {
         return convertToResponse(application);
     }
 
-
-
     public void withdrawApplication(
             Long applicationId,
             Authentication authentication
@@ -175,7 +182,6 @@ public class ApplicationService {
 
         applicationRepository.delete(application);
     }
-
 
     public List<ApplicationResponse> getApplicationsForJob(
             Long jobId,
@@ -214,8 +220,6 @@ public class ApplicationService {
                 .map(this::convertToResponse)
                 .toList();
     }
-
-
 
     public ApplicationResponse getRecruiterApplication(
             Long applicationId,
@@ -258,8 +262,6 @@ public class ApplicationService {
 
         return convertToResponse(application);
     }
-
-
 
     public ApplicationResponse updateApplicationStatus(
             Long applicationId,
@@ -313,18 +315,27 @@ public class ApplicationService {
 
         Application updatedApplication =
                 applicationRepository.save(application);
+        Long studentUserId =
+                updatedApplication
+                        .getStudent()
+                        .getUser()
+                        .getId();
+
+        notificationService.createNotification(
+                studentUserId,
+                "Your application for "
+                        + updatedApplication.getJob().getTitle()
+                        + " has been updated to "
+                        + updatedApplication.getStatus()
+        );
 
         return convertToResponse(updatedApplication);
     }
 
-
-
     private User getLoggedInUser(
             Authentication authentication
     ) {
-
         String email = authentication.getName();
-
         return userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
@@ -333,28 +344,20 @@ public class ApplicationService {
                         ));
     }
 
-
     private ApplicationResponse convertToResponse(
             Application application
     ) {
-
         return new ApplicationResponse(
                 application.getId(),
-
                 application.getStudent().getId(),
-
                 application.getStudent().getFullName(),
-
                 application.getJob().getId(),
-
                 application.getJob().getTitle(),
-
                 application.getJob()
                         .getCompany()
                         .getCompanyName(),
 
                 application.getStatus(),
-
                 application.getAppliedAt()
         );
     }
